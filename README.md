@@ -40,7 +40,7 @@ CampusPulse/
 ## Setup
 
 ```bash
-git clone git@github.com:davlatbekzoirov/CampusPulse-.git
+git clone git@github.com:davlatbekzoirov/CampusPulse.git
 cd CampusPulse
 
 python -m venv venv
