@@ -1,0 +1,23 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Impact Journal · Campus Life{% endblock %}
+{% block content %}
+
+<h1>Impact Journal</h1>
+<a class="btn" href="{% url 'extracurricular:impact_create' %}">+ Log Achievement</a>
+
+<div class="card">
+    {% for entry in entries %}
+    <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+        <strong>{{ entry.date }}</strong> — {{ entry.description }}
+        {% if entry.impact %}<br><em>{{ entry.impact }}</em>{% endif %}
+        {% if entry.club %}<br><span class="badge">{{ entry.club.name }}</span>{% endif %}
+        <div style="margin-top: 6px;">
+            <a class="btn" href="{% url 'extracurricular:impact_edit' entry.pk %}">Edit</a>
+            <a class="btn btn-danger" href="{% url 'extracurricular:impact_delete' entry.pk %}">Delete</a>
+        </div>
+    </div>
+    {% empty %}
+    <p>No impact entries yet — log your wins as they happen!</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Volunteering · Campus Life{% endblock %}
+{% block content %}
+
+<h1>Volunteer Hour Log & Milestone Tracker</h1>
+<a class="btn" href="{% url 'extracurricular:volunteer_create' %}">+ Log Hours</a>
+
+<div class="card">
+    <h3>Milestones</h3>
+    {% for name, threshold in summary.tiers %}
+        <p>
+            {% if summary.total_hours >= threshold %}
+                <span class="badge">{{ name }} ({{ threshold }}h) ✓</span>
+            {% else %}
+                {{ name }} — {{ threshold }}h
+            {% endif %}
+        </p>
+    {% endfor %}
+    <p>Total: {{ summary.total_hours }} hours</p>
+</div>
+
+<div class="card">
+    <h3>Hours by Cause</h3>
+    <canvas id="causeChart" height="160"></canvas>
+</div>
+
+<div class="card">
+    <table>
+        <tr><th>Date</th><th>Organization</th><th>Cause</th><th>Hours</th><th>Location</th><th>Supervisor</th><th></th></tr>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.organization }}</td>
+            <td>{{ entry.cause.name|default:"—" }}</td>
+            <td>{{ entry.hours }}</td>
+            <td>{{ entry.location }}</td>
+            <td>{{ entry.supervisor_name }} {% if entry.supervisor_email %}({{ entry.supervisor_email }}){% endif %}</td>
+            <td>
+                <a class="btn" href="{% url 'extracurricular:volunteer_edit' entry.pk %}">Edit</a>
+                <a class="btn btn-danger" href="{% url 'extracurricular:volunteer_delete' entry.pk %}">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No volunteer hours logged yet.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+{{ summary.by_cause|json_script:"cause-data" }}
+<script>
+const causeData = JSON.parse(document.getElementById('cause-data').textContent);
+new Chart(document.getElementById('causeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: causeData.map(c => c.cause__name || "Uncategorized"),
+        datasets: [{ data: causeData.map(c => parseFloat(c.total)), backgroundColor: causeData.map(c => c.cause__color || "#9ca3af") }]
+    },
+    options: { responsive: true }
+});
+</script>
+{% endblock %}

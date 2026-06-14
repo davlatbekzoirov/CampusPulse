@@ -1,0 +1,41 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}{{ club.name }} · Campus Life{% endblock %}
+{% block content %}
+
+<h1>{{ club.name }}</h1>
+<p>{{ club.description }}</p>
+<div class="tag-cloud">
+    {% for skill in club.skills.all %}<span>{{ skill.name }}</span>{% endfor %}
+</div>
+
+<div class="card">
+    <h3>Role Progression</h3>
+    <table>
+        <tr><th>Role</th><th>Start</th><th>End</th><th></th></tr>
+        {% for role in club.roles.all %}
+        <tr>
+            <td>{{ role.title }}{% if role.is_current %} <span class="badge">Current</span>{% endif %}</td>
+            <td>{{ role.start_date }}</td>
+            <td>{{ role.end_date|default:"Ongoing" }}</td>
+            <td>
+                <form method="post" action="{% url 'extracurricular:club_role_delete' club.pk role.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No roles logged yet.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h4>Add Role</h4>
+    <form method="post" action="{% url 'extracurricular:club_role_add' club.pk %}">
+        {% csrf_token %}
+        {{ role_form.as_p }}
+        <button class="btn" type="submit">Add Role</button>
+    </form>
+</div>
+
+<a class="btn" href="{% url 'extracurricular:club_list' %}">Back to Clubs</a>
+{% endblock %}

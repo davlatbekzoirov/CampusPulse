@@ -1,0 +1,38 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Clubs · Campus Life{% endblock %}
+{% block content %}
+
+<h1>Club & Society Role Ledger</h1>
+<a class="btn" href="{% url 'extracurricular:club_create' %}">+ Add Club</a>
+
+{% if tag_cloud %}
+<div class="card">
+    <h3>Skill Tag Cloud</h3>
+    <div class="tag-cloud">
+        {% for skill, count in tag_cloud %}
+            <span>{{ skill }} ({{ count }})</span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <table>
+        <tr><th>Club</th><th>Status</th><th>Current Role</th><th>Skills</th><th></th></tr>
+        {% for club in clubs %}
+        <tr>
+            <td><a href="{% url 'extracurricular:club_detail' club.pk %}">{{ club.name }}</a></td>
+            <td>{% if club.is_active %}Active{% else %}Inactive{% endif %}</td>
+            <td>{% if club.current_role %}{{ club.current_role.title }}{% else %}—{% endif %}</td>
+            <td>{% for skill in club.skills.all %}<span class="badge">{{ skill.name }}</span>{% endfor %}</td>
+            <td>
+                <a class="btn" href="{% url 'extracurricular:club_edit' club.pk %}">Edit</a>
+                <a class="btn btn-danger" href="{% url 'extracurricular:club_delete' club.pk %}">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No clubs logged yet.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

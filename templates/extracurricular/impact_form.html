@@ -1,0 +1,12 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}{% if entry %}Edit{% else %}Log{% endif %} Achievement · Campus Life{% endblock %}
+{% block content %}
+<h1>{% if entry %}Edit{% else %}Log{% endif %} Achievement</h1>
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Save</button>
+    </form>
+</div>
+{% endblock %}
