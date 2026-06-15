@@ -1,12 +1,51 @@
 {% extends "extracurricular/base.html" %}
-{% block title %}{% if club %}Edit{% else %}Add{% endif %} Club · Campus Life{% endblock %}
+{% block title %}{% if club %}Edit{% else %}Add{% endif %} Club · CampusPulse{% endblock %}
+
 {% block content %}
-<h1>{% if club %}Edit{% else %}Add{% endif %} Club</h1>
+<div class="page-header">
+  <div>
+    <a href="{% url 'extracurricular:club_list' %}" class="text-muted" style="font-size:13px;">&#8592; Clubs</a>
+    <h1 class="page-title" style="margin-top:4px">
+      {% if club %}Edit{% else %}Add{% endif %} Club
+    </h1>
+  </div>
+</div>
+
 <div class="card">
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn" type="submit">Save</button>
-    </form>
+  <p class="card-title">Club details</p>
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <div class="message message-error">{{ error }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <hr class="divider">
+
+    <div class="flex-between">
+      <span class="text-muted">All fields are required unless marked optional</span>
+      <div class="gap-2">
+        <a href="{% url 'extracurricular:club_list' %}" class="btn btn-outline btn-sm">Cancel</a>
+        <button class="btn btn-primary btn-sm" type="submit">
+          {% if club %}Save changes{% else %}Save club{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </form>
 </div>
 {% endblock %}

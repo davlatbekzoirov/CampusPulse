@@ -1,100 +1,147 @@
 {% extends "extracurricular/base.html" %}
-{% block title %}Dashboard · Campus Life{% endblock %}
+{% block title %}Dashboard · CampusPulse{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
-
-<h1>Campus Life Dashboard</h1>
-
-<div class="stat-cards">
-    <div class="card stat-card">
-        <div class="number">{{ total_clubs }}</div>
-        <div class="label">Total Clubs Active</div>
-    </div>
-    <div class="card stat-card">
-        <div class="number">{{ volunteer_summary.total_hours }}</div>
-        <div class="label">Total Volunteer Hours Logged</div>
-    </div>
-    <div class="card stat-card">
-        <div class="number">{{ total_impacts }}</div>
-        <div class="label">Total Quantified Impacts Recorded</div>
-    </div>
+<div class="page-header">
+  <h1 class="page-title">Campus life dashboard</h1>
 </div>
 
-<div class="card">
-    <h3>Volunteer Milestone Progress</h3>
+<div class="stat-grid" style="margin-bottom:1.25rem">
+  <div class="stat stat-purple">
+    <div class="stat-label">Active clubs</div>
+    <div class="stat-value">{{ total_clubs }}</div>
+    <div class="stat-sub">this semester</div>
+  </div>
+  <div class="stat stat-teal">
+    <div class="stat-label">Volunteer hours</div>
+    <div class="stat-value">{{ volunteer_summary.total_hours }}</div>
+    <div class="stat-sub">total logged</div>
+  </div>
+  <div class="stat stat-amber">
+    <div class="stat-label">Impacts recorded</div>
+    <div class="stat-value">{{ total_impacts }}</div>
+    <div class="stat-sub">in journal</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+  <div class="card">
+    <p class="card-title">Volunteer milestone</p>
     {% if volunteer_summary.next_tier %}
-        <p>{{ volunteer_summary.total_hours }} / {{ volunteer_summary.next_tier.1 }} hours toward
-           <strong>{{ volunteer_summary.next_tier.0 }}</strong>
-           ({{ volunteer_summary.hours_remaining }} hours remaining)</p>
-        <div class="progress-bar">
-            <div class="progress-bar-fill tier-{{ volunteer_summary.next_tier.0 }}"
-                 style="width: {{ volunteer_summary.progress_pct }}%;"></div>
-        </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        {% if volunteer_summary.current_tier %}
+          <span class="badge badge-in_progress">{{ volunteer_summary.current_tier.0 }}</span>
+        {% endif %}
+        <span class="text-muted">{{ volunteer_summary.hours_remaining }} hrs to {{ volunteer_summary.next_tier.0 }}</span>
+      </div>
+      <div class="score-bar" style="margin:8px 0 6px">
+        <div class="score-fill" style="width:{{ volunteer_summary.progress_pct }}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span class="text-muted">{{ volunteer_summary.total_hours }} / {{ volunteer_summary.next_tier.1 }} hrs</span>
+        <span class="text-muted">{{ volunteer_summary.progress_pct }}%</span>
+      </div>
     {% else %}
-        <p><span class="badge">Platinum unlocked 🏆</span> {{ volunteer_summary.total_hours }} hours logged</p>
+      <span class="badge badge-graded">Platinum unlocked</span>
+      <p class="text-muted" style="margin-top:8px">{{ volunteer_summary.total_hours }} hours logged — all tiers complete!</p>
     {% endif %}
-    {% if volunteer_summary.current_tier %}
-        <p><span class="badge">{{ volunteer_summary.current_tier.0 }} badge unlocked</span></p>
-    {% endif %}
-</div>
+  </div>
 
-<div class="card">
-    <h3>Hours by Cause</h3>
-    <canvas id="causeChart" height="160"></canvas>
-</div>
-
-<div class="card">
-    <h3>Next Event</h3>
+  <div class="card">
+    <p class="card-title">Next event</p>
     {% if next_event %}
-        <p><strong>{{ next_event.title }}</strong> — {{ next_event.start_time }}</p>
-        {% if next_event.location %}<p>📍 {{ next_event.location }}</p>{% endif %}
-        <p data-countdown="{{ next_event.start_time|date:'c' }}" id="countdown"></p>
+      <p style="font-size:15px;font-weight:600;color:#e8e6f0;margin-bottom:4px">{{ next_event.title }}</p>
+      {% if next_event.location %}
+        <p class="text-muted" style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <span>&#x1F4CD;</span> {{ next_event.location }}
+        </p>
+      {% endif %}
+      <p class="text-muted">{{ next_event.start_time }}</p>
+      <div style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:#1e1e1d;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:500;color:#AFA9EC">
+        &#x23F1; <span id="countdown" data-countdown="{{ next_event.start_time|date:'c' }}">Calculating…</span>
+      </div>
     {% else %}
-        <p>No upcoming events scheduled.</p>
+      <p class="text-muted">No upcoming events scheduled.</p>
     {% endif %}
+  </div>
+
 </div>
 
-<div class="card">
-    <h3>Recent Impact Journal Entries</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+  <div class="card">
+    <p class="card-title">Hours by cause</p>
+    <div style="position:relative;height:160px">
+      <canvas id="causeChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Recent impact journal</p>
     {% for entry in recent_impacts %}
-        <p>{{ entry.date }} — <strong>{{ entry.description }}</strong>{% if entry.impact %} ({{ entry.impact }}){% endif %}</p>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="text-muted" style="min-width:72px;flex-shrink:0">{{ entry.date }}</span>
+        <span style="font-size:14px;flex:1">{{ entry.description }}</span>
+        {% if entry.impact %}<span class="text-muted" style="flex-shrink:0">{{ entry.impact }}</span>{% endif %}
+      </div>
     {% empty %}
-        <p>No impact entries logged yet.</p>
+      <p class="text-muted">No impact entries logged yet.</p>
     {% endfor %}
+  </div>
+
 </div>
 
 <div class="card">
-    <h3>Extracurricular Calendar Feed</h3>
-    <p>Subscribe in Apple/Google Calendar using:</p>
-    <code>{% url 'extracurricular:ical_feed' feed_token %}</code>
+  <p class="card-title" style="margin-bottom:.5rem">Calendar feed</p>
+  <p class="text-muted" style="margin-bottom:8px">Subscribe in Apple or Google Calendar using this URL:</p>
+  <div style="background:#1e1e1d;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 12px;font-size:12px;font-family:monospace;color:#AFA9EC;word-break:break-all">
+    {% url 'extracurricular:ical_feed' feed_token %}
+  </div>
 </div>
 
 {{ volunteer_summary.by_cause|json_script:"cause-data" }}
+{% endblock %}
+
+{% block extra_js %}
 <script>
 const causeData = JSON.parse(document.getElementById('cause-data').textContent);
-const labels = causeData.map(c => c.cause__name || "Uncategorized");
-const data = causeData.map(c => parseFloat(c.total));
-const colors = causeData.map(c => c.cause__color || "#9ca3af");
-
 new Chart(document.getElementById('causeChart'), {
-    type: 'doughnut',
-    data: {
-        labels: labels,
-        datasets: [{ data: data, backgroundColor: colors }]
+  type: 'doughnut',
+  data: {
+    labels: causeData.map(c => c.cause__name || 'Uncategorized'),
+    datasets: [{
+      data: causeData.map(c => parseFloat(c.total)),
+      backgroundColor: causeData.map(c => c.cause__color || '#5F5E5A'),
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { color: '#888', font: { size: 12 }, boxWidth: 10, padding: 10 }
+      }
     },
-    options: { responsive: true }
+    cutout: '65%'
+  }
 });
 
 function updateCountdown() {
-    const el = document.getElementById('countdown');
-    if (!el) return;
-    const target = new Date(el.dataset.countdown).getTime();
-    const now = Date.now();
-    const diff = target - now;
-    if (diff <= 0) { el.textContent = "Starting now!"; return; }
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    el.textContent = `Starts in ${days}d ${hours}h ${mins}m`;
+  const el = document.getElementById('countdown');
+  if (!el) return;
+  const diff = new Date(el.dataset.countdown).getTime() - Date.now();
+  if (diff <= 0) { el.textContent = 'Starting now!'; return; }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  el.textContent = d + 'd ' + h + 'h ' + m + 'm';
 }
 updateCountdown();
 setInterval(updateCountdown, 60000);

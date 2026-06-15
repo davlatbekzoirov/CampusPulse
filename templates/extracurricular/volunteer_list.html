@@ -2,48 +2,63 @@
 {% block title %}Volunteering · Campus Life{% endblock %}
 {% block content %}
 
-<h1>Volunteer Hour Log & Milestone Tracker</h1>
-<a class="btn" href="{% url 'extracurricular:volunteer_create' %}">+ Log Hours</a>
+<div class="page-header">
+    <h1 class="page-title">Volunteer Hour Log &amp; Milestone Tracker</h1>
+    <a class="btn btn-primary" href="{% url 'extracurricular:volunteer_create' %}">+ Log Hours</a>
+</div>
 
-<div class="card">
-    <h3>Milestones</h3>
+<div class="stat-grid">
+    <div class="stat stat-purple">
+        <div class="stat-label">Total Hours</div>
+        <div class="stat-value">{{ summary.total_hours }}</div>
+    </div>
     {% for name, threshold in summary.tiers %}
-        <p>
+        <div class="stat {% if summary.total_hours >= threshold %}stat-teal{% else %}stat-blue{% endif %}">
+            <div class="stat-label">{{ name }}</div>
+            <div class="stat-value">{{ threshold }}h</div>
             {% if summary.total_hours >= threshold %}
-                <span class="badge">{{ name }} ({{ threshold }}h) ✓</span>
+                <div class="stat-sub">✓ Achieved</div>
             {% else %}
-                {{ name }} — {{ threshold }}h
+                <div class="stat-sub">{{ threshold|add:"-0" }}h needed</div>
             {% endif %}
-        </p>
+        </div>
     {% endfor %}
-    <p>Total: {{ summary.total_hours }} hours</p>
 </div>
 
 <div class="card">
-    <h3>Hours by Cause</h3>
+    <div class="card-title">Hours by Cause</div>
     <canvas id="causeChart" height="160"></canvas>
 </div>
 
 <div class="card">
-    <table>
-        <tr><th>Date</th><th>Organization</th><th>Cause</th><th>Hours</th><th>Location</th><th>Supervisor</th><th></th></tr>
-        {% for entry in entries %}
-        <tr>
-            <td>{{ entry.date }}</td>
-            <td>{{ entry.organization }}</td>
-            <td>{{ entry.cause.name|default:"—" }}</td>
-            <td>{{ entry.hours }}</td>
-            <td>{{ entry.location }}</td>
-            <td>{{ entry.supervisor_name }} {% if entry.supervisor_email %}({{ entry.supervisor_email }}){% endif %}</td>
-            <td>
-                <a class="btn" href="{% url 'extracurricular:volunteer_edit' entry.pk %}">Edit</a>
-                <a class="btn btn-danger" href="{% url 'extracurricular:volunteer_delete' entry.pk %}">Delete</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7">No volunteer hours logged yet.</td></tr>
-        {% endfor %}
-    </table>
+    <div class="card-title">Volunteer Log</div>
+    <div class="table-wrap">
+        <table>
+            <tr><th>Date</th><th>Organization</th><th>Cause</th><th>Hours</th><th>Location</th><th>Supervisor</th><th></th></tr>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.date }}</td>
+                <td>{{ entry.organization }}</td>
+                <td>
+                    {% if entry.cause %}
+                        <span class="gap-2"><span class="color-dot" style="background:{{ entry.cause.color|default:'#9ca3af' }};"></span>{{ entry.cause.name }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ entry.hours }}</td>
+                <td>{{ entry.location }}</td>
+                <td>{{ entry.supervisor_name }}{% if entry.supervisor_email %} <span class="text-muted">({{ entry.supervisor_email }})</span>{% endif %}</td>
+                <td>
+                    <div class="gap-2">
+                        <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:volunteer_edit' entry.pk %}">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="{% url 'extracurricular:volunteer_delete' entry.pk %}">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7"><div class="empty"><div class="empty-icon">🤝</div><p>No volunteer hours logged yet.</p></div></td></tr>
+            {% endfor %}
+        </table>
+    </div>
 </div>
 
 {{ summary.by_cause|json_script:"cause-data" }}
@@ -55,7 +70,10 @@ new Chart(document.getElementById('causeChart'), {
         labels: causeData.map(c => c.cause__name || "Uncategorized"),
         datasets: [{ data: causeData.map(c => parseFloat(c.total)), backgroundColor: causeData.map(c => c.cause__color || "#9ca3af") }]
     },
-    options: { responsive: true }
+    options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#e8e6f0' } } }
+    }
 });
 </script>
 {% endblock %}

@@ -2,40 +2,91 @@
 {% block title %}{{ club.name }} · Campus Life{% endblock %}
 {% block content %}
 
-<h1>{{ club.name }}</h1>
-<p>{{ club.description }}</p>
-<div class="tag-cloud">
-    {% for skill in club.skills.all %}<span>{{ skill.name }}</span>{% endfor %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ club.name }}</h1>
+    <p class="text-muted" style="margin-top: 4px;">{{ club.description }}</p>
+  </div>
+  <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:club_list' %}">
+    ← Back to Clubs
+  </a>
 </div>
+
+{% if club.skills.all %}
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.75rem;">
+  {% for skill in club.skills.all %}
+  <span style="font-size: 12px; padding: 4px 10px; border-radius: 20px;
+               background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+               color: rgba(255,255,255,.6);">
+    {{ skill.name }}
+  </span>
+  {% endfor %}
+</div>
+{% endif %}
 
 <div class="card">
-    <h3>Role Progression</h3>
+  <p class="card-title">Role Progression</p>
+
+  <div class="table-wrap">
     <table>
-        <tr><th>Role</th><th>Start</th><th>End</th><th></th></tr>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Start</th>
+          <th>End</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
         {% for role in club.roles.all %}
         <tr>
-            <td>{{ role.title }}{% if role.is_current %} <span class="badge">Current</span>{% endif %}</td>
-            <td>{{ role.start_date }}</td>
-            <td>{{ role.end_date|default:"Ongoing" }}</td>
-            <td>
-                <form method="post" action="{% url 'extracurricular:club_role_delete' club.pk role.pk %}" style="display:inline">
-                    {% csrf_token %}
-                    <button class="btn btn-danger" type="submit">Remove</button>
-                </form>
-            </td>
+          <td>
+            {{ role.title }}
+            {% if role.is_current %}
+              <span class="badge badge-match" style="margin-left: 6px;">Current</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ role.start_date }}</td>
+          <td class="text-muted">{{ role.end_date|default:"Ongoing" }}</td>
+          <td style="text-align: right;">
+            <form method="post" action="{% url 'extracurricular:club_role_delete' club.pk role.pk %}" style="display: inline;">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+            </form>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4">No roles logged yet.</td></tr>
+        <tr>
+          <td colspan="4">
+            <div class="empty" style="padding: 1.5rem;">
+              <div class="empty-icon">🎭</div>
+              <p>No roles logged yet.</p>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
+      </tbody>
     </table>
+  </div>
 
-    <h4>Add Role</h4>
-    <form method="post" action="{% url 'extracurricular:club_role_add' club.pk %}">
-        {% csrf_token %}
-        {{ role_form.as_p }}
-        <button class="btn" type="submit">Add Role</button>
-    </form>
+  <hr class="divider">
+
+  <p class="card-title">Add Role</p>
+  <form method="post" action="{% url 'extracurricular:club_role_add' club.pk %}">
+    {% csrf_token %}
+    <div class="form-row">
+      {% for field in role_form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <button class="btn btn-primary btn-sm" type="submit">+ Add Role</button>
+  </form>
 </div>
 
-<a class="btn" href="{% url 'extracurricular:club_list' %}">Back to Clubs</a>
 {% endblock %}

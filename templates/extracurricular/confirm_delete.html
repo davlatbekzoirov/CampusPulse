@@ -1,12 +1,30 @@
 {% extends "extracurricular/base.html" %}
 {% block title %}Confirm Delete · Campus Life{% endblock %}
 {% block content %}
-<h1>Delete "{{ object }}"?</h1>
-<div class="card">
-    <form method="post">
-        {% csrf_token %}
-        <button class="btn btn-danger" type="submit">Yes, delete</button>
-        <a class="btn" href="javascript:history.back()">Cancel</a>
+
+<div style="max-width: 480px;">
+
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: .5rem;">
+    <div style="width: 36px; height: 36px; border-radius: 50%;
+                background: #FCEBEB; display: flex; align-items: center;
+                justify-content: center; flex-shrink: 0;">
+      <span style="font-size: 17px;">🗑</span>
+    </div>
+    <h1 class="page-title">Delete "{{ object }}"?</h1>
+  </div>
+
+  <p class="text-muted" style="margin: 0 0 1.5rem; padding-left: 46px;">
+    This action is permanent and cannot be undone.
+  </p>
+
+  <div class="card" style="display: flex; gap: 8px; align-items: center;">
+    <form method="post" style="display: contents;">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-sm" type="submit">🗑 Yes, delete</button>
     </form>
+    <a class="btn btn-outline btn-sm" href="javascript:history.back()">Cancel</a>
+  </div>
+
 </div>
+
 {% endblock %}

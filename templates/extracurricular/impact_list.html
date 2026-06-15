@@ -2,22 +2,39 @@
 {% block title %}Impact Journal · Campus Life{% endblock %}
 {% block content %}
 
-<h1>Impact Journal</h1>
-<a class="btn" href="{% url 'extracurricular:impact_create' %}">+ Log Achievement</a>
+<div class="page-header">
+    <h1 class="page-title">Impact Journal</h1>
+    <a class="btn btn-primary" href="{% url 'extracurricular:impact_create' %}">+ Log Achievement</a>
+</div>
 
 <div class="card">
     {% for entry in entries %}
-    <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-        <strong>{{ entry.date }}</strong> — {{ entry.description }}
-        {% if entry.impact %}<br><em>{{ entry.impact }}</em>{% endif %}
-        {% if entry.club %}<br><span class="badge">{{ entry.club.name }}</span>{% endif %}
-        <div style="margin-top: 6px;">
-            <a class="btn" href="{% url 'extracurricular:impact_edit' entry.pk %}">Edit</a>
-            <a class="btn btn-danger" href="{% url 'extracurricular:impact_delete' entry.pk %}">Delete</a>
+    <div class="flex-between" style="align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.05);">
+        <div>
+            <div class="gap-2" style="margin-bottom: 4px;">
+                <strong>{{ entry.date }}</strong>
+                {% if entry.club %}<span class="badge badge-match">{{ entry.club.name }}</span>{% endif %}
+            </div>
+            <div>{{ entry.description }}</div>
+            {% if entry.impact %}<div class="text-muted" style="margin-top: 4px;"><em>{{ entry.impact }}</em></div>{% endif %}
+        </div>
+        <div class="gap-2">
+            <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:impact_edit' entry.pk %}">Edit</a>
+            <a class="btn btn-danger btn-sm" href="{% url 'extracurricular:impact_delete' entry.pk %}">Delete</a>
         </div>
     </div>
     {% empty %}
-    <p>No impact entries yet — log your wins as they happen!</p>
+    <div class="empty">
+        <div class="empty-icon">📓</div>
+        <p>No impact entries yet — log your wins as they happen!</p>
+    </div>
     {% endfor %}
 </div>
+
+{% if entries %}
+<style>
+.card > div.flex-between:last-of-type { border-bottom: none; }
+</style>
+{% endif %}
+
 {% endblock %}
