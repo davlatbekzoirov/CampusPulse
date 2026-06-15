@@ -1,13 +1,12 @@
 import uuid
 from datetime import timedelta, timezone as dt_timezone
-
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse, Http404
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-
 from .forms import (
     ClubForm,
     ClubRoleForm,
@@ -23,12 +22,10 @@ from .models import (
     ImpactEntry,
     MILESTONE_TIERS,
     VolunteerEntry,
+    Skill
 )
 
-
-# ---------------------------------------------------------------------------
-# Shared helpers
-# ---------------------------------------------------------------------------
+User = get_user_model()
 
 def get_volunteer_summary(user):
     """Total hours, cause breakdown, and milestone progress for a user."""
@@ -41,7 +38,6 @@ def get_volunteer_summary(user):
         .order_by("-total")
     )
 
-    # Determine current/next milestone tier.
     current_tier = None
     next_tier = None
     for name, threshold in MILESTONE_TIERS:
@@ -77,10 +73,6 @@ def get_or_create_feed_token(user):
     return token
 
 
-# ---------------------------------------------------------------------------
-# Dashboard
-# ---------------------------------------------------------------------------
-
 @login_required
 def dashboard(request):
     user = request.user
@@ -110,10 +102,6 @@ def dashboard(request):
     return render(request, "extracurricular/dashboard.html", context)
 
 
-# ---------------------------------------------------------------------------
-# 1. Club & Society Role Ledger
-# ---------------------------------------------------------------------------
-
 @login_required
 def club_list(request):
     clubs = (
@@ -121,7 +109,6 @@ def club_list(request):
         .prefetch_related("roles", "skills")
     )
 
-    # Build a soft-skill tag cloud across all clubs.
     skill_counts = {}
     for club in clubs:
         for skill in club.skills.all():
@@ -206,10 +193,6 @@ def club_role_delete(request, pk, role_pk):
     return redirect("extracurricular:club_detail", pk=club.pk)
 
 
-# ---------------------------------------------------------------------------
-# 2. Volunteer Hour Log & Milestone Tracker
-# ---------------------------------------------------------------------------
-
 @login_required
 def volunteer_list(request):
     entries = VolunteerEntry.objects.filter(user=request.user).select_related("cause")
@@ -259,10 +242,6 @@ def volunteer_delete(request, pk):
     return render(request, "extracurricular/confirm_delete.html", {"object": entry})
 
 
-# ---------------------------------------------------------------------------
-# 3. Impact Journal
-# ---------------------------------------------------------------------------
-
 @login_required
 def impact_list(request):
     entries = ImpactEntry.objects.filter(user=request.user).select_related("club")
@@ -306,10 +285,6 @@ def impact_delete(request, pk):
         return redirect("extracurricular:impact_list")
     return render(request, "extracurricular/confirm_delete.html", {"object": entry})
 
-
-# ---------------------------------------------------------------------------
-# 4. Event & Workshop Calendar
-# ---------------------------------------------------------------------------
 
 @login_required
 def event_list(request):
@@ -372,10 +347,6 @@ def regenerate_feed_token(request):
     return redirect("extracurricular:event_list")
 
 
-# ---------------------------------------------------------------------------
-# iCal feed (public via secret token, mirrors University Tracker logic)
-# ---------------------------------------------------------------------------
-
 def _format_ical_dt(dt):
     if timezone.is_naive(dt):
         dt = timezone.make_aware(dt, timezone.get_current_timezone())
@@ -423,3 +394,120 @@ def ical_feed(request, token):
     response = HttpResponse("\r\n".join(lines), content_type="text/calendar")
     response["Content-Disposition"] = 'attachment; filename="extracurricular.ics"'
     return response
+
+
+@login_required
+def resume_generator(request):
+    """Fetches user impacts and structures them using the Google X-Y-Z formula."""
+    impacts = ImpactEntry.objects.filter(user=request.user).select_related("club")
+    formatted_bullets = []
+    
+    for entry in impacts:
+        action = entry.description or "[Accomplished Action]"
+        metric = entry.impact or "[Quantitative Impact]"
+        context = entry.club.name if entry.club else "extracurricular activities"
+        
+        bullets = {
+            "standard": f"Accomplished {action.lower()}, as measured by {metric.lower()}, through leadership in {context}.",
+            "action_first": f"Spearheaded initiatives in {context} to achieve {action.lower()}, resulting in {metric.lower()}.",
+            "impact_first": f"Delivered {metric.lower()} by organizing {action.lower()} within the {context}."
+        }
+        
+        formatted_bullets.append({
+            "entry": entry,
+            "suggestions": bullets
+        })
+        
+    return render(request, "extracurricular/resume_generator.html", {
+        "formatted_bullets": formatted_bullets
+    })
+
+
+def public_portfolio(request, username):
+    """A public read-only page featuring a user's verified student involvement."""
+    portfolio_user = get_object_or_404(User, username=username)
+    
+    clubs = Club.objects.filter(user=portfolio_user, is_active=True).prefetch_related("roles", "skills")
+    impacts = ImpactEntry.objects.filter(user=portfolio_user).select_related("club")[:10]
+    
+    from .views import get_volunteer_summary
+    volunteer_summary = get_volunteer_summary(portfolio_user)
+    
+    skill_counts = {}
+    for club in clubs:
+        for skill in club.skills.all():
+            skill_counts[skill.name] = skill_counts.get(skill.name, 0) + 1
+    tag_cloud = sorted(skill_counts.items(), key=lambda x: -x[1])
+
+    context = {
+        "portfolio_user": portfolio_user,
+        "clubs": clubs,
+        "impacts": impacts,
+        "volunteer_summary": volunteer_summary,
+        "tag_cloud": tag_cloud,
+    }
+    return render(request, "extracurricular/public_portfolio.html", context)
+
+
+@login_required
+def portfolio_settings(request):
+    """A simple placeholder view to manage profile privacy controls."""
+    full_url = request.build_absolute_uri(
+        reverse("extracurricular:public_portfolio", args=[request.user.username])
+    )
+    return render(request, "extracurricular/portfolio_settings.html", {"shareable_url": full_url})
+
+
+@login_required
+def analytics_insights(request):
+    """Evaluates the user's current engagement data and surfaces feedback."""
+    user = request.user
+    clubs = Club.objects.filter(user=user)
+    
+    total_clubs = clubs.count()
+    leadership_roles_count = 0
+    general_member_count = 0
+    
+    for club in clubs:
+        current = club.current_role
+        if current:
+            title = current.title.lower()
+            if any(lead in title for lead in ["president", "chair", "lead", "captain", "secretary", "treasurer", "director"]):
+                leadership_roles_count += 1
+            else:
+                general_member_count += 1
+        else:
+            general_member_count += 1
+
+    leadership_feedback = ""
+    if total_clubs > 3 and leadership_roles_count == 0:
+        leadership_feedback = "You're participating in several spaces! Consider consolidating your energy next semester onto 1 or 2 core clubs where you can seek an executive committee or leadership role."
+    elif leadership_roles_count >= 1:
+        leadership_feedback = "Excellent! You are showing clear leadership experience on your track. Ensure your impact statements outline how you managed tasks or team progress."
+    else:
+        leadership_feedback = "Great start. Look out for project steering groups or sub-committee roles within your clubs to begin adding management credentials to your resume."
+
+    user_skills = Skill.objects.filter(clubs__user=user).values_list("name", flat=True).distinct()
+    
+    career_paths = {
+        "Project Management": ["Organization", "Public Speaking", "Budgeting", "Leadership"],
+        "Engineering & Tech": ["Problem Solving", "Teamwork", "Technical Writing", "Time Management"],
+        "Healthcare & Science": ["Empathy", "Critical Thinking", "Communication", "Data Analysis"]
+    }
+    
+    path_analysis = {}
+    for path, required_skills in career_paths.items():
+        missing = [skill for skill in required_skills if skill not in user_skills]
+        match_percentage = int(((len(required_skills) - len(missing)) / len(required_skills)) * 100)
+        path_analysis[path] = {
+            "missing": missing,
+            "match_pct": match_percentage
+        }
+
+    context = {
+        "leadership_feedback": leadership_feedback,
+        "leadership_count": leadership_roles_count,
+        "member_count": general_member_count,
+        "path_analysis": path_analysis,
+    }
+    return render(request, "extracurricular/analytics_insights.html", context)

@@ -1,0 +1,41 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Portfolio Settings · CampusPulse{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Portfolio Distribution Settings</h1>
+</div>
+
+<div class="card">
+  <p class="card-title">Your Live Public Directory Link</p>
+  <p class="text-muted" style="margin-bottom: 12px;">Share this static URL with counselors, admissions teams, or add it to your LinkedIn profile info:</p>
+  
+  <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+    <div style="flex: 1; background: #1e1e1d; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: monospace; color: #AFA9EC; word-break: break-all;">
+      {{ shareable_url }}
+    </div>
+    <button class="btn btn-primary" onclick="copyLink(this, '{{ shareable_url }}')">Copy Link</button>
+  </div>
+  
+  <div class="divider"></div>
+  <p class="text-muted" style="font-size: 12px; color: #666;">
+    ⚠️ Note: Users visiting this link will see a read-only list summary of your active clubs, compiled tags, service hours metrics, and logged impact snapshots. You can toggle active statuses directly within individual entry settings.
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyLink(button, url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = button.textContent;
+    button.textContent = 'Copied!';
+    button.style.background = '#1D9E75';
+    setTimeout(() => {
+      button.textContent = orig;
+      button.style.background = '';
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}

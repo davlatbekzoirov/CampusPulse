@@ -1,0 +1,98 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}{{ portfolio_user.username }} · Portfolio{% endblock %}
+
+{% block content %}
+<div class="card" style="background: linear-gradient(135deg, #222221 0%, #171716 100%); margin-bottom: 2rem; border-color: rgba(127,119,221,.2); text-align: center; padding: 2.5rem 1.5rem;">
+  <div style="width: 64px; height: 64px; background: #534AB7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 24px; font-weight: bold; color: #fff; box-shadow: 0 4px 14px rgba(83,74,183,.4);">
+    {{ portfolio_user.username|slice:":1"|upper }}
+  </div>
+  <h1 class="page-title" style="margin-bottom: 4px;">{{ portfolio_user.username }}</h1>
+  <p class="text-muted">Verified Extracurricular Profile & Academic Involvement</p>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 1.5rem;">
+  <div class="stat stat-purple">
+    <div class="stat-label">Affiliated Clubs</div>
+    <div class="stat-value">{{ clubs|length }}</div>
+    <div class="stat-sub">Active groups</div>
+  </div>
+  <div class="stat stat-teal">
+    <div class="stat-label">Community Service</div>
+    <div class="stat-value">{{ volunteer_summary.total_hours }}</div>
+    <div class="stat-sub">Hours logged</div>
+  </div>
+  <div class="stat stat-amber">
+    <div class="stat-label">Milestone Rank</div>
+    <div class="stat-value" style="font-size: 22px; padding: 4px 0;">
+      {% if volunteer_summary.current_tier %}{{ volunteer_summary.current_tier.0 }}{% else %}None{% endif %}
+    </div>
+    <div class="stat-sub">Service badge</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem;">
+  <div>
+    <div class="card">
+      <p class="card-title">Involvement & Leadership Roles</p>
+      {% for club in clubs %}
+        <div style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.05);">
+          <div class="flex-between">
+            <strong style="color: #fff; font-size: 15px;">{{ club.name }}</strong>
+            {% if club.current_role %}
+              <span class="badge badge-match">{{ club.current_role.title }}</span>
+            {% else %}
+              <span class="badge badge-upcoming">Member</span>
+            {% endif %}
+          </div>
+          {% if club.description %}
+            <p class="text-muted" style="margin-top: 6px; line-height: 1.4;">{{ club.description }}</p>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p class="text-muted">No public clubs listed.</p>
+      {% endfor %}
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem;">
+      <p class="card-title">Key Impact Journal Achievements</p>
+      {% for entry in impacts %}
+        <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05);">
+          <span class="text-muted" style="font-size: 12px; min-width: 80px; flex-shrink: 0;">{{ entry.date|date:"M Y" }}</span>
+          <div style="flex: 1;">
+            <p style="font-size: 14px; color: #e8e6f0;">{{ entry.description }}</p>
+            {% if entry.impact %}
+              <span class="badge badge-safety" style="margin-top: 4px; font-size: 10px;">Metrics: {{ entry.impact }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">No public achievements surfaced yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <p class="card-title">Verified Competencies</p>
+      {% if tag_cloud %}
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          {% for skill, count in tag_cloud %}
+            <span class="badge badge-upcoming" style="background: rgba(127,119,221,.15); color: #AFA9EC; padding: 4px 10px; border-radius: 6px;">
+              {{ skill }}
+            </span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">No skill categories logged.</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem; border-color: rgba(29,158,117,.2);">
+      <p class="card-title" style="color: #5DCAA5;">✓ Verification Audit</p>
+      <p class="text-muted" style="line-height: 1.4; font-size: 13px;">
+        This real-time record feed is compiled natively by <strong>CampusPulse</strong> database management engines. Total registered metrics reflect continuous on-campus participation logs verified under academic profile parameters.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

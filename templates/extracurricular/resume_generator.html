@@ -1,0 +1,81 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Resume Generator · CampusPulse{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Resume Bullet Point Generator</h1>
+    <p class="text-muted" style="margin-top: 4px;">Transforming your Impact Journal logs into clear Google X-Y-Z statements.</p>
+  </div>
+</div>
+
+{% for item in formatted_bullets %}
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <div class="flex-between" style="margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,.05); padding-bottom: 0.5rem;">
+      <span class="badge badge-match" style="text-transform: uppercase; font-weight: 600;">
+        {% if item.entry.club %}{{ item.entry.club.name }}{% else %}General Activity{% endif %}
+      </span>
+      <span class="text-muted">{{ item.entry.date }}</span>
+    </div>
+    
+    <p style="font-size: 14px; margin-bottom: 1rem; color: #aaa;">
+      <strong style="color: #fff;">Raw Entry:</strong> {{ item.entry.description }} 
+      {% if item.entry.impact %}<span style="color: #7F77DD;">({{ item.entry.impact }})</span>{% endif %}
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; background: #1e1e1d; padding: 1rem; border-radius: 9px; border: 1px solid rgba(255,255,255,.05);">
+      <div>
+        <div class="text-muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px; color: #666;">Standard Formula</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+          <span class="bullet-text" style="font-size: 14px; color: #e8e6f0;">• {{ item.suggestions.standard }}</span>
+          <button class="btn btn-outline btn-sm" onclick="copyText(this)">Copy</button>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid rgba(255,255,255,.05); padding-top: 8px;">
+        <div class="text-muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px; color: #666;">Action-Oriented Variant</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+          <span class="bullet-text" style="font-size: 14px; color: #e8e6f0;">• {{ item.suggestions.action_first }}</span>
+          <button class="btn btn-outline btn-sm" onclick="copyText(this)">Copy</button>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,.05); padding-top: 8px;">
+        <div class="text-muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px; color: #666;">Metrics-Focused Variant</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+          <span class="bullet-text" style="font-size: 14px; color: #e8e6f0;">• {{ item.suggestions.impact_first }}</span>
+          <button class="btn btn-outline btn-sm" onclick="copyText(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <div class="card empty">
+    <div class="empty-icon">📝</div>
+    <p>No entry achievements found inside your Impact Journal.</p>
+    <p class="text-muted" style="margin-top: 6px;">Log achievements with metrics first to populate optimized suggestions here!</p>
+  </div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyText(button) {
+  const container = button.closest('div');
+  const textSpan = container.querySelector('.bullet-text');
+  if (!textSpan) return;
+  
+  navigator.clipboard.writeText(textSpan.textContent).then(() => {
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.style.borderColor = '#1D9E75';
+    button.style.color = '#5DCAA5';
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.style.borderColor = '';
+      button.style.color = '';
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}

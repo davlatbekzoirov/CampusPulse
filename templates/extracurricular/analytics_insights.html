@@ -1,0 +1,61 @@
+{% extends "extracurricular/base.html" %}
+{% block title %}Insights & Gaps Finder · CampusPulse{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Growth & Leadership Analytics</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+  
+  <div class="card">
+    <p class="card-title">Leadership Balance Index</p>
+    
+    <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; margin-top: 0.5rem;">
+      <div style="flex: 1; background: #1e1e1d; padding: 10px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 11px; color: #888; text-transform: uppercase;">Exec Roles</div>
+        <div style="font-size: 24px; font-weight: bold; color: #7F77DD; margin-top: 4px;">{{ leadership_count }}</div>
+      </div>
+      <div style="flex: 1; background: #1e1e1d; padding: 10px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 11px; color: #888; text-transform: uppercase;">General Member</div>
+        <div style="font-size: 24px; font-weight: bold; color: #e8e6f0; margin-top: 4px;">{{ member_count }}</div>
+      </div>
+    </div>
+    
+    <div style="background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); padding: 12px; border-radius: 9px; font-size: 13.5px; line-height: 1.5;">
+      <strong style="color: #fff; display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; color: #BA7517;">💡 Recommendation:</strong>
+      {{ leadership_feedback }}
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Target Path Skill-Gap Analysis</p>
+    <p class="text-muted" style="margin-bottom: 1rem;">Comparison index of logged skill categories evaluated against classic target recruitment criteria:</p>
+    
+    {% for path, data in path_analysis.items %}
+      <div style="margin-bottom: 1.25rem;">
+        <div class="flex-between" style="font-size: 13px; font-weight: 600;">
+          <span style="color: #fff;">{{ path }}</span>
+          <span class="text-muted">{{ data.match_pct }}% Fit</span>
+        </div>
+        
+        <div class="score-bar" style="margin: 6px 0;">
+          <div class="score-fill {% if data.match_pct > 70 %}score-fill-green{% elif data.match_pct > 40 %}score-fill-blue{% endif %}" style="width: {{ data.match_pct }}%"></div>
+        </div>
+        
+        <div style="font-size: 12px; display: flex; gap: 4px; align-items: baseline; flex-wrap: wrap;">
+          {% if data.missing %}
+            <span style="color: #888;">Gaps to build:</span>
+            {% for skill in data.missing %}
+              <span style="color: #F09595; background: rgba(226,75,74,0.1); padding: 1px 6px; border-radius: 4px; font-size: 11px;">{{ skill }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color: #5DCAA5;">✓ Core targets logged! Excellent tracking portfolio.</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  
+</div>
+{% endblock %}

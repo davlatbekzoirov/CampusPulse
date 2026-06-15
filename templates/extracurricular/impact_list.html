@@ -4,7 +4,18 @@
 
 <div class="page-header">
     <h1 class="page-title">Impact Journal</h1>
-    <a class="btn btn-primary" href="{% url 'extracurricular:impact_create' %}">+ Log Achievement</a>
+    <div class="gap-2">
+        <a class="btn btn-outline" href="{% url 'extracurricular:resume_generator' %}">📝 Resume Generator</a>
+        <a class="btn btn-outline" href="{% url 'extracurricular:analytics_insights' %}">📊 Insights & Gaps</a>
+        <a class="btn btn-primary" href="{% url 'extracurricular:impact_create' %}">+ Log Achievement</a>
+    </div>
+</div>
+
+<div class="card" style="background: rgba(127,119,221,.05); border-color: rgba(127,119,221,.15); margin-bottom: 1rem; padding: 10px 1.5rem;">
+    <div class="flex-between">
+        <span class="text-muted" style="color: #AFA9EC;">✨ Ready to showcase your verified student involvement portfolio to recruiters?</span>
+        <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:portfolio_settings' %}" style="border-color: rgba(127,119,221,.3); color: #fff;">Configure Portfolio Link</a>
+    </div>
 </div>
 
 <div class="card">

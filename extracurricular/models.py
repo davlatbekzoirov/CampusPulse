@@ -1,14 +1,9 @@
 import uuid
-
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
-
-# ---------------------------------------------------------------------------
-# 1. Club & Society Role Ledger
-# ---------------------------------------------------------------------------
 
 class Skill(models.Model):
     """A reusable soft-skill tag (Public Speaking, Budgeting, etc.)."""
@@ -58,9 +53,9 @@ class ClubRole(models.Model):
     """A role held within a club over a date range (role progression)."""
 
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="roles")
-    title = models.CharField(max_length=100)  # e.g. Member, Secretary, President
+    title = models.CharField(max_length=100) 
     start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)  # null = ongoing
+    end_date = models.DateField(null=True, blank=True)  
 
     class Meta:
         ordering = ["-start_date"]
@@ -72,10 +67,6 @@ class ClubRole(models.Model):
     def is_current(self):
         return self.end_date is None or self.end_date >= timezone.localdate()
 
-
-# ---------------------------------------------------------------------------
-# 2. Volunteer Hour Log & Milestone Tracker
-# ---------------------------------------------------------------------------
 
 class VolunteerCause(models.Model):
     """Category used to group volunteer hours (Environment, Tutoring, etc.)."""
@@ -126,8 +117,6 @@ class VolunteerEntry(models.Model):
         return f"{self.organization} ({self.hours}h on {self.date})"
 
 
-# Milestone tiers used by the progress bar. Defined here so views/templates
-# share a single source of truth.
 MILESTONE_TIERS = [
     ("Bronze", 25),
     ("Silver", 50),
@@ -135,10 +124,6 @@ MILESTONE_TIERS = [
     ("Platinum", 200),
 ]
 
-
-# ---------------------------------------------------------------------------
-# 3. The "Impact Journal"
-# ---------------------------------------------------------------------------
 
 class ImpactEntry(models.Model):
     """A real-time logged achievement for future resume/LinkedIn use."""
@@ -175,10 +160,6 @@ class ImpactEntry(models.Model):
         return self.description
 
 
-# ---------------------------------------------------------------------------
-# 4. Event & Workshop Calendar
-# ---------------------------------------------------------------------------
-
 class ExtracurricularEvent(models.Model):
     """A one-off event, workshop, lecture, or recurring club meeting."""
 
@@ -206,10 +187,6 @@ class ExtracurricularEvent(models.Model):
     def __str__(self):
         return self.title
 
-
-# ---------------------------------------------------------------------------
-# Calendar feed token (per-user unique iCal URL for extracurriculars)
-# ---------------------------------------------------------------------------
 
 class CalendarFeedToken(models.Model):
     """One-per-user secret token used to build the extracurricular iCal URL."""
