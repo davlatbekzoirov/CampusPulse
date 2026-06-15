@@ -1,12 +1,55 @@
 {% extends "extracurricular/base.html" %}
-{% block title %}{% if entry %}Edit{% else %}Log{% endif %} Achievement · Campus Life{% endblock %}
+{% block title %}{% if entry %}Edit{% else %}Log{% endif %} Achievement · CampusPulse{% endblock %}
+
 {% block content %}
-<h1>{% if entry %}Edit{% else %}Log{% endif %} Achievement</h1>
+<div class="page-header">
+  <div>
+    <a href="{% url 'extracurricular:impact_list' %}" class="text-muted" style="font-size:13px;">&#8592; Impact journal</a>
+    <h1 class="page-title" style="margin-top:4px">
+      {% if entry %}Edit{% else %}Log{% endif %} achievement
+    </h1>
+  </div>
+</div>
+
 <div class="card">
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn" type="submit">Save</button>
-    </form>
+  <p class="card-title">Achievement details</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <div class="message message-error">{{ error }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+          <p class="text-muted" style="margin-top:4px">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <hr class="divider">
+
+    <div class="flex-between">
+      <span class="text-muted">Description and date are required</span>
+      <div class="gap-2">
+        <a href="{% url 'extracurricular:impact_list' %}" class="btn btn-outline btn-sm">Cancel</a>
+        <button class="btn btn-primary btn-sm" type="submit">
+          {% if entry %}Save changes{% else %}Save achievement{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </form>
 </div>
 {% endblock %}

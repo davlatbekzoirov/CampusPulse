@@ -1,12 +1,60 @@
 {% extends "extracurricular/base.html" %}
 {% block title %}{% if event %}Edit{% else %}Add{% endif %} Event · Campus Life{% endblock %}
 {% block content %}
-<h1>{% if event %}Edit{% else %}Add{% endif %} Event</h1>
-<div class="card">
+
+<div style="max-width: 600px;">
+
+  <div class="page-header">
+    <h1 class="page-title">{% if event %}Edit{% else %}Add{% endif %} Event</h1>
+    <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:event_list' %}">
+      ← Back to Events
+    </a>
+  </div>
+
+  <div class="card">
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn" type="submit">Save</button>
+      {% csrf_token %}
+
+      <div class="form-section">
+        <p class="form-section-title">Event details</p>
+
+        {% for field in form %}
+          {% if field.field.widget.input_type == 'date' or field.field.widget.input_type == 'time' %}
+            {% if forloop.first or prev_was_not_datetime %}
+            <div class="form-row">
+            {% endif %}
+          {% endif %}
+
+          <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <ul class="errorlist">
+                {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+            {% if field.help_text %}
+              <p class="text-muted" style="margin-top: 4px; font-size: 12px;">{{ field.help_text }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+      </div>
+
+      <hr class="divider">
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary btn-sm" type="submit">
+          ✓ Save Event
+        </button>
+        <a class="btn btn-outline btn-sm" href="{% url 'extracurricular:event_list' %}">
+          Cancel
+        </a>
+      </div>
+
     </form>
+  </div>
+
 </div>
+
 {% endblock %}

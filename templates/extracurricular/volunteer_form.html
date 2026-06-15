@@ -1,12 +1,33 @@
 {% extends "extracurricular/base.html" %}
 {% block title %}{% if entry %}Edit{% else %}Log{% endif %} Volunteer Hours · Campus Life{% endblock %}
 {% block content %}
-<h1>{% if entry %}Edit{% else %}Log{% endif %} Volunteer Hours</h1>
+
+<div class="page-header">
+    <h1 class="page-title">{% if entry %}Edit{% else %}Log{% endif %} Volunteer Hours</h1>
+</div>
+
 <div class="card">
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button class="btn" type="submit">Save</button>
+        <div class="gap-2" style="margin-top: 1rem;">
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a class="btn btn-outline" href="{% url 'extracurricular:volunteer_list' %}">Cancel</a>
+        </div>
     </form>
 </div>
+
+<style>
+.card form p { margin-bottom: 1rem; }
+.card form label { display: block; font-size: 12px; font-weight: 600; color: #999; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+.card form input, .card form select, .card form textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 9px;
+    font-size: 14px; font-family: inherit; background: #1e1e1d; color: #e8e6f0;
+    transition: border-color .15s, box-shadow .15s;
+}
+.card form input:focus, .card form select:focus, .card form textarea:focus {
+    outline: none; border-color: #7F77DD; box-shadow: 0 0 0 3px rgba(127,119,221,.2); background: #222221;
+}
+.card form ul.errorlist { list-style: none; color: #f09595; font-size: 13px; margin-top: 4px; padding: 0; }
+</style>
 {% endblock %}
